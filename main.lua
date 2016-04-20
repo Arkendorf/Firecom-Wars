@@ -48,6 +48,7 @@ function love.load()
   selected = 1 -- 1 is scout
   chars = {{0, 0, 0, 0, 10, 100}, {0, 64, 0, 64, 10, 100}, {64, 0, 64, 0, 10, 100}, {64, 64, 64, 64, 10, 100}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
+  dead = {0, 0, 0, 0}
   enemies = {}
   enemyMove = {}
   orderE = {}
@@ -225,6 +226,12 @@ function love.update(dt)
     end
   end
 
+  for i = 1, 4 do
+    if chars[i][6] < 1 then
+      dead[i] = 1
+    end
+  end
+
   love.graphics.setLineWidth(math.sin(dtTotal) * 5)
 
 
@@ -251,6 +258,11 @@ end
 function love.keypressed(key)
   if key == "tab" then
     selected = selected + 1
+    for i = 1, 4 do
+      if dead[selected] == 1 then
+        selected = selected + 1
+      end
+    end
     if selected == 5 then
       selected = 1
     end
@@ -268,14 +280,20 @@ function love.draw()
       end
     end
     for i = 1, 4 do
-      if chars[i][2] > (rowsDown * 64) - 128 and chars[i][2] <= (rowsDown * 64) - 64 then
+      if chars[i][2] > (rowsDown * 64) - 128 and chars[i][2] <= (rowsDown * 64) - 64 and dead[i] ~= 1 then
         love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
+        love.graphics.setLineWidth(4)
+        love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - 64, chars[i][1] - x + (chars[i][6] / 100) * 62, chars[i][2] - y - 64)
+        love.graphics.setLineWidth(math.sin(dtTotal) * 5)
       end
     end
     for i = 1, #enemies do
       if enemies[i][2] > (rowsDown * 64) - 128 and enemies[i][2] <= (rowsDown * 64) - 64 then
         if mapRevealed[round(enemies[i][2] / 64) + 1][round(enemies[i][1] / 64) + 1] == 1 then
           love.graphics.draw(stormtrooper, stormtrooper1, enemies[i][1] - x, enemies[i][2] - y - 64)
+          love.graphics.setLineWidth(4)
+          love.graphics.line(enemies[i][1] - x + 2, enemies[i][2] - y - 64, enemies[i][1] - x + (enemies[i][6] / 100) * 62, enemies[i][2] - y - 64)
+          love.graphics.setLineWidth(math.sin(dtTotal) * 5)
         end
       end
     end
