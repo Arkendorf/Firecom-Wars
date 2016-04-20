@@ -51,7 +51,10 @@ function love.load()
   enemies = {}
   enemyMove = {}
   orderE = {}
+  enemyToMove = 1
+  alreadyMoved = {0, 0, 0, 0}
   newEnemy(256, 256)
+  newEnemy(256, 192)
 end
 
 function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
@@ -170,14 +173,22 @@ function love.update(dt)
   end
 
   if chars[1][5] == 0 and chars[2][5] == 0 and chars[3][5] == 0 and chars[4][5] == 0 then
-    chars[1][5] = 10
-    chars[2][5] = 10
-    chars[3][5] = 10
-    chars[4][5] = 10
-    for i = 1, #enemies do
-      spotPlayers(i)
-      getEnemyMoves(i)
-      chooseEnemyMove(i)
+    if alreadyMoved[enemyToMove] == 0 then
+      spotPlayers(enemyToMove)
+      getEnemyMoves(enemyToMove)
+      chooseEnemyMove(enemyToMove)
+      alreadyMoved[enemyToMove] = 1
+    end
+    if enemies[enemyToMove][1] == enemies[enemyToMove][3] and enemies[enemyToMove][2] == enemies[enemyToMove][4] then
+      enemyToMove = enemyToMove + 1
+    end
+    if enemyToMove == #enemies + 1 then
+      chars[1][5] = 10
+      chars[2][5] = 10
+      chars[3][5] = 10
+      chars[4][5] = 10
+      enemyToMove = 1
+      alreadyMoved = {0, 0, 0, 0}
     end
   end
 
@@ -230,7 +241,9 @@ function love.draw()
     end
     for i = 1, #enemies do
       if enemies[i][2] > (rowsDown * 64) - 128 and enemies[i][2] <= (rowsDown * 64) - 64 then
-        love.graphics.draw(stormtrooper, stormtrooper1, enemies[i][1] - x, enemies[i][2] - y - 64)
+        if mapRevealed[round(enemies[i][2] / 64) + 1][round(enemies[i][1] / 64) + 1] == 1 then
+          love.graphics.draw(stormtrooper, stormtrooper1, enemies[i][1] - x, enemies[i][2] - y - 64)
+        end
       end
     end
   end

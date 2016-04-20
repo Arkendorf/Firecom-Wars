@@ -1,8 +1,9 @@
-playersSpotted = {{0, 0, 0, 0}}
+playersSpotted = {}
 
 function newEnemy(x, y)
   table.insert(enemies, {x, y, x, y, 10})
   table.insert(enemyMove, {0, 0, 0})
+  table.insert(playersSpotted, {0, 0, 0, 0})
 end
 
 function spotPlayers(i)
