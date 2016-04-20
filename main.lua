@@ -31,6 +31,8 @@ function love.load()
   stormtrooper = love.graphics.newImage("stormtrooper.png")
   stormtrooper1 = love.graphics.newQuad(0, 0, 64, 128, stormtrooper:getDimensions())
 
+  laser = love.graphics.newImage("laser.png")
+
   dtTotal = 0
 
   w = love.graphics.getWidth ()
@@ -39,20 +41,22 @@ function love.load()
   generateMap(50)
   map[3][3] = 2 -- TO TEST WALLS!
   tileType = {0, 1}
-  x = 0
   xV = 0
-  y = 0
   yV = 0
   dX = 0
   dY = 0
   selected = 1 -- 1 is scout
-  chars = {{0, 0, 0, 0, 10}, {0, 64, 0, 64, 10}, {64, 0, 64, 0, 10}, {64, 64, 64, 64, 10}}
+  chars = {{0, 0, 0, 0, 10, 100}, {0, 64, 0, 64, 10, 100}, {64, 0, 64, 0, 10, 100}, {64, 64, 64, 64, 10, 100}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
   enemies = {}
   enemyMove = {}
   orderE = {}
   enemyToMove = 1
   alreadyMoved = {0, 0, 0, 0}
+  lasers = {}
+  laserMove = {}
+  x = chars[selected][1] - round(w / 2)
+  y = chars[selected][2] - round(h / 2)
   newEnemy(256, 256)
   newEnemy(256, 192)
 end
@@ -61,12 +65,12 @@ function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci 
 
 function noOverlap(x1, y1, x2, y2)
   for i = 1, 4 do
-    if x2 == round(chars[i][1]) and y2 == round(chars[i][2]) then
+    if x2 == round(chars[i][3]) and y2 == round(chars[i][4]) then
       return false
     end
   end
   for i = 1, #enemies do
-    if x2 == round(enemies[i][1]) and y2 == round(enemies[i][2]) then
+    if x2 == round(enemies[i][3]) and y2 == round(enemies[i][4]) then
       return false
     end
   end
@@ -142,6 +146,25 @@ function moveEnemy(i)
   end
 end
 
+function moveLaser(i)
+  if laserMove[i][3] > 0 then
+    lasers[i][1] = lasers[i][1] + laserMove[i][1]
+    lasers[i][2] = lasers[i][2] + laserMove[i][2]
+    laserMove[i][3] = laserMove[i][3] - 1
+  else
+    lasers[i][1] = lasers[i][3]
+    lasers[i][2] = lasers[i][4]
+  end
+end
+
+function newLaser(x1, y1, x2, y2, target)
+  table.insert(lasers, {x1, y1, x2, y2, target})
+  table.insert(laserMove, {0, 0, 0})
+  laserMove[#laserMove][3] = round(math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) / 16)
+  laserMove[#laserMove][1] = (x2 - x1) / laserMove[#laserMove][3]
+  laserMove[#laserMove][2] = (y2 - y1) / laserMove[#laserMove][3]
+end
+
 function love.update(dt)
   dtTotal = dtTotal + dt
   if love.keyboard.isDown("w") then
@@ -172,6 +195,15 @@ function love.update(dt)
     moveEnemy(i)
   end
 
+  if #lasers > 0 then
+    moveLaser(1)
+    if laserMove[1][3] == 0 then
+      chars[lasers[1][5]][6] = chars[lasers[1][5]][6] - 10
+      table.remove(lasers, 1)
+      table.remove(laserMove, 1)
+    end
+  end
+
   if chars[1][5] == 0 and chars[2][5] == 0 and chars[3][5] == 0 and chars[4][5] == 0 then
     if alreadyMoved[enemyToMove] == 0 then
       spotPlayers(enemyToMove)
@@ -180,6 +212,7 @@ function love.update(dt)
       alreadyMoved[enemyToMove] = 1
     end
     if enemies[enemyToMove][1] == enemies[enemyToMove][3] and enemies[enemyToMove][2] == enemies[enemyToMove][4] then
+      enemyAttack(enemyToMove)
       enemyToMove = enemyToMove + 1
     end
     if enemyToMove == #enemies + 1 then
@@ -246,6 +279,10 @@ function love.draw()
         end
       end
     end
+  end
+
+  if #lasers > 0 then
+    love.graphics.draw(laser, lasers[1][1] - x, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
   end
 
   if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true

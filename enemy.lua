@@ -1,7 +1,7 @@
 playersSpotted = {}
 
 function newEnemy(x, y)
-  table.insert(enemies, {x, y, x, y, 10})
+  table.insert(enemies, {x, y, x, y, 10, 100})
   table.insert(enemyMove, {0, 0, 0})
   table.insert(playersSpotted, {0, 0, 0, 0})
 end
@@ -44,11 +44,8 @@ function chooseEnemyMove(i)
   if #validMoves < 1 then
     return
   end
-  if playersSpotted[i][1] == 0 and playersSpotted[i][2] == 0 and playersSpotted[i][3] == 0 and playersSpotted[i][4] == 0  then
-    return
-  end
   tilesToMove = round((distanceToPlayers[1][2] - 256) / 64)
-    if tilesToMove > 0 then
+    if tilesToMove > 0 or moveValid(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4]) == false then
     table.sort(validMoves, function(a, b) return a[3] < b[3] end)
     for range = tilesToMove, 10 do
       for move = 1, #validMoves do
@@ -74,6 +71,22 @@ function chooseEnemyMove(i)
           enemyMove[i][1] = (validMoves[move][1] - enemies[i][1]) / enemyMove[i][3]
           enemyMove[i][2] = (validMoves[move][2] - enemies[i][2]) / enemyMove[i][3]
           return
+        end
+      end
+    end
+  end
+end
+
+function enemyAttack(i)
+  if moveValid(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4]) and enemies[i][5] > 0 then
+    for attacks = enemies[i][5], 2, -2 do
+      newLaser(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4], distanceToPlayers[1][1])
+    end
+  elseif enemies[i][5] > 4 then
+    for char = 1, 4 do
+      if playersSpotted[i][char] == 1 then
+        for enemy = 1, #enemies do
+          playersSpotted[enemy][char] = 1
         end
       end
     end
