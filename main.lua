@@ -26,7 +26,10 @@ function love.load()
   end
 
   scout = love.graphics.newImage("scout.png")
-  scout1 = love.graphics.newQuad(64, 0, 64, 96, scout:getDimensions())
+  scout1 = love.graphics.newQuad(0, 0, 64, 128, scout:getDimensions())
+
+  stormtrooper = love.graphics.newImage("stormtrooper.png")
+  stormtrooper1 = love.graphics.newQuad(0, 0, 64, 128, stormtrooper:getDimensions())
 
   dtTotal = 0
 
@@ -45,9 +48,10 @@ function love.load()
   selected = 1 -- 1 is scout
   chars = {{0, 0, 0, 0, 10}, {0, 64, 0, 64, 10}, {64, 0, 64, 0, 10}, {64, 64, 64, 64, 10}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-  enemies = {{256, 256, 256, 256, 10}}
-  enemyMove = {{0, 0, 0}}
+  enemies = {}
+  enemyMove = {}
   orderE = {}
+  newEnemy(256, 256)
 end
 
 function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
@@ -219,23 +223,15 @@ function love.draw()
         love.graphics.draw(tileset, tiles[map[rowsDown][tilesAcross]], (tilesAcross - 1) * 64 - x, (rowsDown - 1) * 64 - y)
       end
     end
-  end
-
-  orderC = {{scout, scout1, chars[1][1] - x, chars[1][2] - y - 32}, {scout, scout1, chars[2][1] - x, chars[2][2] - y - 32}, {scout, scout1, chars[3][1] - x, chars[3][2] - y - 32}, {scout, scout1, chars[4][1] - x, chars[4][2] - y - 32}}
-  table.sort(orderC, function(a, b) return a[4] < b[4] end)
-
-  for i = 1, #enemies do
-    table.insert(orderE, {scout, scout1, enemies[i][1] - x, enemies[i][2] - y - 32})
-  end
-  table.sort(orderE, function(a, b) return a[4] < b[4] end)
-
-  for i = 1, 4 do  -- Players
-    love.graphics.draw(orderC[i][1], orderC[i][2], orderC[i][3], orderC[i][4])
-  end
-
-  for i = 1, #orderE do -- Enemies
-    if mapRevealed[round((orderE[i][4] + y + 32) / 64)][round((orderE[i][3] + x) / 64)] == 1 then
-      love.graphics.draw(orderE[i][1], orderE[i][2], orderE[i][3], orderE[i][4])
+    for i = 1, 4 do
+      if chars[i][2] > (rowsDown * 64) - 128 and chars[i][2] <= (rowsDown * 64) - 64 then
+        love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
+      end
+    end
+    for i = 1, #enemies do
+      if enemies[i][2] > (rowsDown * 64) - 128 and enemies[i][2] <= (rowsDown * 64) - 64 then
+        love.graphics.draw(stormtrooper, stormtrooper1, enemies[i][1] - x, enemies[i][2] - y - 64)
+      end
     end
   end
 
