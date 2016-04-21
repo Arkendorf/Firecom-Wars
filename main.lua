@@ -26,13 +26,12 @@ function love.load()
   end
 
   scout = love.graphics.newImage("scout.png")
-  scout1 = love.graphics.newQuad(0, 0, 64, 128, scout:getDimensions())
 
   tank = love.graphics.newImage("tank.png")
-  tank1 = love.graphics.newQuad(0, 0, 96, 160, tank:getDimensions())
+
+  sniper = love.graphics.newImage("sniper.png")
 
   stormtrooper = love.graphics.newImage("stormtrooper.png")
-  stormtrooper1 = love.graphics.newQuad(0, 0, 64, 128, stormtrooper:getDimensions())
 
   laser = love.graphics.newImage("laser.png")
 
@@ -48,11 +47,11 @@ function love.load()
   yV = 0
   dX = 0
   dY = 0
-  selected = 1 -- 1 is scout, 2 is tank
-  chars = {{0, 0, 0, 0, 10, 100}, {0, 64, 0, 64, 10, 100}, {64, 0, 64, 0, 10, 100}, {64, 64, 64, 64, 10, 100}}
+  selected = 1 -- 1 is scout, 2 is tank, 3 is sniper,
+  chars = {{0, 0, 0, 0, 10, 100}, {0, 64, 0, 64, 10, 200}, {64, 0, 64, 0, 10, 100}, {64, 64, 64, 64, 10, 100}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
   dead = {0, 0, 0, 0}
-  images = {scout, tank, scout, scout}
+  images = {scout, tank, sniper, scout}
   enemies = {}
   enemyMove = {}
   orderE = {}
@@ -219,7 +218,7 @@ function love.update(dt)
       chooseEnemyMove(enemyToMove)
       alreadyMoved[enemyToMove] = 1
     end
-    if enemies[enemyToMove][1] == enemies[enemyToMove][3] and enemies[enemyToMove][2] == enemies[enemyToMove][4] and #lasers == 0 then
+    if enemyMove[enemyToMove][3] == 0 and #lasers == 0 then
       enemyAttack(enemyToMove)
       enemyToMove = enemyToMove + 1
     end
@@ -289,14 +288,20 @@ function love.draw()
     for i = 1, 4 do
       if chars[i][2] > (rowsDown * 64) - 128 and chars[i][2] <= (rowsDown * 64) - 64 and dead[i] ~= 1 then
         if i == 1 then
-          love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
+          love.graphics.draw(scout, chars[i][1] - x, chars[i][2] - y - 64)
         elseif i == 2 then
-          love.graphics.draw(tank, tank1, chars[i][1] - x - 16, chars[i][2] - y - 96)
+          love.graphics.draw(tank, chars[i][1] - x - 16, chars[i][2] - y - 96)
+        elseif i == 3 then
+          love.graphics.draw(sniper, chars[i][1] - x, chars[i][2] - y - 64)
         else
-          love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
+          love.graphics.draw(scout, chars[i][1] - x, chars[i][2] - y - 64)
         end
         love.graphics.setLineWidth(4)
-        love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 - 4, chars[i][1] - x + (chars[i][6] / 100) * 62, chars[i][2] - y - images[i]:getHeight() / 2 - 4)
+        if i == 2 then
+          love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 - 4, chars[i][1] - x + (chars[i][6] / 200) * 62, chars[i][2] - y - images[i]:getHeight() / 2 - 4)
+        else
+          love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 - 4, chars[i][1] - x + (chars[i][6] / 100) * 62, chars[i][2] - y - images[i]:getHeight() / 2 - 4)
+        end
         if chars[i][5] > 0 then
           love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 + 4, chars[i][1] - x + (chars[i][5] / 10) * 62, chars[i][2] - y - images[i]:getHeight() / 2 + 4)
         end
@@ -306,7 +311,7 @@ function love.draw()
     for i = 1, #enemies do
       if enemies[i][2] > (rowsDown * 64) - 128 and enemies[i][2] <= (rowsDown * 64) - 64 then
         if mapRevealed[round(enemies[i][2] / 64) + 1][round(enemies[i][1] / 64) + 1] == 1 then
-          love.graphics.draw(stormtrooper, stormtrooper1, enemies[i][1] - x, enemies[i][2] - y - 64)
+          love.graphics.draw(stormtrooper, enemies[i][1] - x, enemies[i][2] - y - 64)
           love.graphics.setLineWidth(4)
           love.graphics.line(enemies[i][1] - x + 2, enemies[i][2] - y - 64, enemies[i][1] - x + (enemies[i][6] / 100) * 62, enemies[i][2] - y - 64)
           love.graphics.setLineWidth(math.sin(dtTotal) * 5)
