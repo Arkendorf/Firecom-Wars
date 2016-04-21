@@ -58,6 +58,8 @@ function love.load()
   x = chars[selected][1] - round(w / 2)
   y = chars[selected][2] - round(h / 2)
   enemyTurn = false
+
+     newEnemy (1152, 1216)
 end
 
 function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
@@ -364,6 +366,13 @@ function love.mousepressed(mX, mY, button)
 end
 
 function love.keypressed(key)
+  if key == "return" then
+    chars[1][5] = 0
+    chars[2][5] = 0
+    chars[3][5] = 0
+    chars[4][5] = 0
+  end
+
   if key == "tab" then
     mode = 1
     selected = selected + 1
@@ -436,6 +445,9 @@ function love.keypressed(key)
 end
 
 function love.draw()
+  if enemyTurn == true then
+    love.graphics.setColor (255, 0, 0)
+  end
   love.graphics.setColor(255, 255, 255)
   for rowsDown = 1, #map do
     for tilesAcross = 1, #map[1] do
@@ -445,6 +457,9 @@ function love.draw()
     end
     for i = 1, 4 do
       if chars[i][2] > (rowsDown * 64) - 128 and chars[i][2] <= (rowsDown * 64) - 64 and dead[i] ~= 1 then
+        if enemyTurn == true then
+          love.graphics.setColor (255, 0, 0)
+        end
         if i == 1 then
           love.graphics.draw(scout, chars[i][1] - x, chars[i][2] - y - 64)
         elseif i == 2 then
@@ -469,7 +484,13 @@ function love.draw()
         love.graphics.setColor(255, 255, 255)
       end
     end
+
+
+
     for i = 1, #enemies do
+      if enemyTurn == true then
+        love.graphics.setColor (255, 0, 0)
+      end
       if enemies[i][2] > (rowsDown * 64) - 128 and enemies[i][2] <= (rowsDown * 64) - 64 then
         if mapRevealed[round(enemies[i][2] / 64) + 1][round(enemies[i][1] / 64) + 1] == 1 then
           love.graphics.draw(stormtrooper, enemies[i][1] - x, enemies[i][2] - y - 64)
@@ -541,4 +562,5 @@ function love.draw()
     end
     love.graphics.rectangle("fill", round((mX - 32 + x) / 64) * 64 - x, round((mY - 32 + y) / 64) * 64 - y, 64, 64)
   end
+
 end
