@@ -223,13 +223,11 @@ function love.update(dt)
       elseif lasers[1][6] == 4 then
         enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 100
       end
-      if lasers[1][6] == 1 or lasers[1][6] == 3 or lasers[1][6] == 4 then
-        if enemies[lasers[1][5]][6] <= 0 then
-          table.remove(enemies, lasers[1][5])
-          table.remove(enemyMove, lasers[1][5])
-          table.remove(playersSpotted, lasers[1][5])
-          alreadyMoved[target] = nil
-        end
+      if enemies[lasers[1][5]][6] <= 0 then
+        table.remove(enemies, lasers[1][5])
+        table.remove(enemyMove, lasers[1][5])
+        table.remove(playersSpotted, lasers[1][5])
+        alreadyMoved[target] = nil
       end
       table.remove(lasers, 1)
       table.remove(laserMove, 1)
