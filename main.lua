@@ -35,6 +35,10 @@ function love.load()
 
   laser = love.graphics.newImage("laser.png")
 
+  bluelaser = love.graphics.newImage("bluelaser.png")
+
+  rock = love.graphics.newImage("rock.png")
+
   dtTotal = 0
 
   w = love.graphics.getWidth ()
@@ -52,6 +56,8 @@ function love.load()
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
   dead = {0, 0, 0, 0}
   images = {scout, tank, sniper, scout}
+  mode = 1
+  specialCost = {5, 3, 10, 8}
   enemies = {}
   enemyMove = {}
   orderE = {}
@@ -83,6 +89,15 @@ function noOverlap(x1, y1, x2, y2)
   end
   distance = math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1))
   return true
+end
+
+function enemyOnTile(x, y)
+  for i = 1, #enemies do
+    if x == round(enemies[i][3]) and y == round(enemies[i][4]) then
+      return true
+    end
+  end
+  return false
 end
 
 function enoughActions(x1, y1, x2, y2)
@@ -164,8 +179,8 @@ function moveLaser(i)
   end
 end
 
-function newLaser(x1, y1, x2, y2, target)
-  table.insert(lasers, {x1, y1, x2, y2, target})
+function newLaser(x1, y1, x2, y2, target, team)
+  table.insert(lasers, {x1, y1, x2, y2, target, team})
   table.insert(laserMove, {0, 0, 0})
   laserMove[#laserMove][3] = round(math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) / 16)
   laserMove[#laserMove][1] = (x2 - x1) / laserMove[#laserMove][3]
@@ -208,7 +223,21 @@ function love.update(dt)
   if #lasers > 0 then
     moveLaser(1)
     if laserMove[1][3] == 0 then
-      chars[lasers[1][5]][6] = chars[lasers[1][5]][6] - 10
+      if lasers[1][6] == 1 then
+        enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 10
+      elseif lasers[1][6] == 2 then
+        chars[lasers[1][5]][6] = chars[lasers[1][5]][6] - 10
+      elseif lasers[1][6] == 3 then
+        enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 25
+      elseif lasers[1][6] == 4 then
+        enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 100
+      end
+      if enemies[lasers[1][5]][6] <= 0 then
+        table.remove(enemies, lasers[1][5])
+        table.remove(enemyMove, lasers[1][5])
+        table.remove(playersSpotted, lasers[1][5])
+        alreadyMoved[target] = nil
+      end
       table.remove(lasers, 1)
       table.remove(laserMove, 1)
     end
@@ -261,21 +290,84 @@ end
 
 function love.mousepressed(mX, mY, button)
   if chars[selected][3] - chars[selected][1] < 1 and chars[selected][4] - chars[selected][2] < 0.5 then
-    if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
-    and noOverlap(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
-    and enoughActions(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true then
-      chars[selected][5] = chars[selected][5] - round(distance / 64)
-      chars[selected][3] = round((mX - 32 + x) / 64) * 64
-      chars[selected][4] = round((mY - 32 + y) / 64) * 64
-      charMove[selected][3] = round(distance / 4)
-      charMove[selected][1] = (round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) / charMove[selected][3]
-      charMove[selected][2] = (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])) / charMove[selected][3]
+    if mode == 1 then
+      if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
+      and noOverlap(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
+      and enoughActions(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true then
+        chars[selected][5] = chars[selected][5] - round(distance / 64)
+        chars[selected][3] = round((mX - 32 + x) / 64) * 64
+        chars[selected][4] = round((mY - 32 + y) / 64) * 64
+        charMove[selected][3] = round(distance / 4)
+        charMove[selected][1] = (round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) / charMove[selected][3]
+        charMove[selected][2] = (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])) / charMove[selected][3]
+      end
+    elseif mode == 2 then
+      attackDistance = math.sqrt((round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) * (round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) + (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])) * (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])))
+      if selected == 1 or selected == 3 then
+        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+        and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 512 then
+          if selected == 1 or selected == 3 then
+            for i = 1, #enemies do
+              if enemies[i][3] == round((mX - 32 + x) / 64) * 64 and enemies[i][4] == round((mY - 32 + y) / 64) * 64 then
+                target = i
+              end
+            end
+            newLaser(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64, target, 1)
+            chars[selected][5] = chars[selected][5] - 2
+          end
+        end
+      elseif selected == 2 or selected == 4 then
+        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+        and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 64 then
+          for i = 1, #enemies do
+            if enemies[i][3] == round((mX - 32 + x) / 64) * 64 and enemies[i][4] == round((mY - 32 + y) / 64) * 64 then
+              target = i
+            end
+          end
+          enemies[target][6] = enemies[target][6] - 20
+          chars[selected][5] = chars[selected][5] - 2
+          if enemies[target][6] <= 0 then
+            table.remove(enemies, target)
+            table.remove(enemyMove, target)
+            table.remove(playersSpotted, target)
+            alreadyMoved[target] = nil
+          end
+        end
+      end
+    elseif mode == 3 then
+      attackDistance = math.sqrt((round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) * (round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) + (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])) * (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])))
+      if selected == 2 then
+        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+        and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 384 then
+          for i = 1, #enemies do
+            if enemies[i][3] == round((mX - 32 + x) / 64) * 64 and enemies[i][4] == round((mY - 32 + y) / 64) * 64 then
+              target = i
+            end
+          end
+          newLaser(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64, target, 3)
+          chars[selected][5] = chars[selected][5] - specialCost[selected]
+        end
+        move = 1
+      elseif selected == 3 then
+        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+        and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 1024 then
+          for i = 1, #enemies do
+            if enemies[i][3] == round((mX - 32 + x) / 64) * 64 and enemies[i][4] == round((mY - 32 + y) / 64) * 64 then
+              target = i
+            end
+          end
+          newLaser(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64, target, 4)
+          chars[selected][5] = chars[selected][5] - specialCost[selected]
+        end
+        move = 1
+      end
     end
   end
 end
 
 function love.keypressed(key)
   if key == "tab" then
+    mode = 1
     selected = selected + 1
     while dead[selected] == 1 or selected > 4 do
       if dead[selected] == 1 then
@@ -287,6 +379,61 @@ function love.keypressed(key)
     end
     x = chars[selected][1] - round(w / 2)
     y = chars[selected][2] - round(h / 2)
+  elseif key == "1" then
+    if mode == 1 or mode == 3 then
+      mode = 2
+    else
+      mode = 1
+    end
+  elseif key == "2" then
+    if mode == 1 or mode == 2 then
+      mode = 3
+      if selected == 1 then
+        if chars[selected][5] >= specialCost[selected] then
+          for rowsDown = 0, #map - 1 do
+            for tilesAcross = 0, #map[1] - 1 do
+              if mapRevealed[rowsDown + 1][tilesAcross + 1] == 0
+              and math.sqrt((rowsDown * 64 - chars[selected][2]) * (rowsDown * 64 - chars[selected][2]) + (tilesAcross * 64 - chars[selected][1]) * (tilesAcross * 64 - chars[selected][1])) < 512 then
+                mapRevealed[rowsDown + 1][tilesAcross + 1] = 1
+              end
+            end
+          end
+          chars[selected][5] = chars[selected][5] - specialCost[selected]
+        end
+        mode = 1
+      elseif selected == 4 then
+        if chars[selected][5] >= specialCost[selected] then
+          healed = 0
+          for i = 1, 4 do
+            closeness = math.sqrt((chars[i][3] - chars[selected][3]) * (chars[i][3] - chars[selected][3]) + (chars[i][4] - chars[selected][4]) * (chars[i][4] - chars[selected][4]))
+            if closeness <= 96 then
+              chars[i][6] = chars[i][6] + 50
+              if i == 2 then
+                if chars[i][6] < 200 then
+                  healed = healed + 1
+                end
+                if chars[i][6] > 200 then
+                  chars[i][6] = 200
+                end
+              else
+                if chars[i][6] < 100 then
+                  healed = healed + 1
+                end
+                if chars[i][6] > 100 then
+                  chars[i][6] = 100
+                end
+              end
+            end
+          end
+          if healed > 0 then
+            chars[selected][5] = chars[selected][5] - specialCost[selected]
+          end
+        end
+        mode = 1
+      end
+    else
+      mode = 1
+    end
   end
 end
 
@@ -339,17 +486,61 @@ function love.draw()
   end
 
   if #lasers > 0 then
-    love.graphics.draw(laser, lasers[1][1] - x + 32, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
+    if lasers[1][6] == 1 or lasers[1][6] == 2 then
+      love.graphics.draw(laser, lasers[1][1] - x + 32, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
+    elseif lasers[1][6] == 3 then
+      love.graphics.draw(rock, lasers[1][1] - x + 32, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
+    elseif lasers[1][6] == 4 then
+      love.graphics.draw(bluelaser, lasers[1][1] - x + 32, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
+    end
   end
 
-  if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
-  and noOverlap(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
-  and enoughActions(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true then
-    love.graphics.setColor(0, 255, 255, 125)
-  else
-    love.graphics.setColor(255, 0, 0, 125)
+  if mode == 1 then
+    if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
+    and noOverlap(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
+    and enoughActions(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true then
+      love.graphics.setColor(0, 255, 255, 125)
+    else
+      love.graphics.setColor(255, 0, 0, 125)
+    end
+    love.graphics.rectangle("fill", round((mX - 32 + x) / 64) * 64 - x, round((mY - 32 + y) / 64) * 64 - y, 64, 64)
+    love.graphics.line(round(chars[selected][1]) - x + 32, round(chars[selected][2]) - y + 32, round((mX - 32 + x) / 64) * 64 - x + 32, round((mY - 32 + y) / 64) * 64 - y + 32)
+  elseif mode == 2 then
+    attackDistance = math.sqrt((round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) * (round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) + (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])) * (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])))
+    if selected == 1 or selected ==3 then
+      if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+      and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 512 then
+        love.graphics.setColor(0, 255, 255, 125)
+      else
+        love.graphics.setColor(255, 0, 0, 125)
+      end
+    elseif selected == 2 or selected == 4 then
+      if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+      and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 96 then
+        love.graphics.setColor(0, 255, 255, 125)
+      else
+        love.graphics.setColor(255, 0, 0, 125)
+      end
+    end
+    love.graphics.rectangle("fill", round((mX - 32 + x) / 64) * 64 - x, round((mY - 32 + y) / 64) * 64 - y, 64, 64)
+  elseif mode == 3 then
+    attackDistance = math.sqrt((round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) * (round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) + (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])) * (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])))
+    if selected == 2 then
+      if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= specialCost[selected]
+      and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 512 then
+        love.graphics.setColor(0, 255, 255, 125)
+      else
+        love.graphics.setColor(255, 0, 0, 125)
+      end
+    end
+    if selected == 3 then
+      if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= specialCost[selected]
+      and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 1024 then
+        love.graphics.setColor(0, 255, 255, 125)
+      else
+        love.graphics.setColor(255, 0, 0, 125)
+      end
+    end
+    love.graphics.rectangle("fill", round((mX - 32 + x) / 64) * 64 - x, round((mY - 32 + y) / 64) * 64 - y, 64, 64)
   end
-
-  love.graphics.rectangle("fill", round((mX - 32 + x) / 64) * 64 - x, round((mY - 32 + y) / 64) * 64 - y, 64, 64)
-  love.graphics.line(round(chars[selected][1]) - x + 32, round(chars[selected][2]) - y + 32, round((mX - 32 + x) / 64) * 64 - x + 32, round((mY - 32 + y) / 64) * 64 - y + 32)
 end

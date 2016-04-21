@@ -77,7 +77,7 @@ function enemyAttack(i)
     distanceToPlayer = math.sqrt((chars[distanceToPlayers[1][1]][3] - enemies[i][3]) * (chars[distanceToPlayers[1][1]][3] - enemies[i][3]) + (chars[distanceToPlayers[1][1]][4] - enemies[i][4]) * (chars[distanceToPlayers[1][1]][4] - enemies[i][4]))
     if distanceToPlayer <= 512 then
       for attacks = enemies[i][5], 2, -2 do
-        newLaser(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4], distanceToPlayers[1][1])
+        newLaser(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4], distanceToPlayers[1][1], 2)
       end
     end
   elseif enemies[i][5] > 4 then
