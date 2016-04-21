@@ -28,6 +28,9 @@ function love.load()
   scout = love.graphics.newImage("scout.png")
   scout1 = love.graphics.newQuad(0, 0, 64, 128, scout:getDimensions())
 
+  tank = love.graphics.newImage("tank.png")
+  tank1 = love.graphics.newQuad(0, 0, 96, 160, tank:getDimensions())
+
   stormtrooper = love.graphics.newImage("stormtrooper.png")
   stormtrooper1 = love.graphics.newQuad(0, 0, 64, 128, stormtrooper:getDimensions())
 
@@ -281,7 +284,13 @@ function love.draw()
     end
     for i = 1, 4 do
       if chars[i][2] > (rowsDown * 64) - 128 and chars[i][2] <= (rowsDown * 64) - 64 and dead[i] ~= 1 then
-        love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
+        if i == 1 then
+          love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
+        elseif i == 2 then
+          love.graphics.draw(tank, tank1, chars[i][1] - x - 16, chars[i][2] - y - 96)
+        else
+          love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
+        end
         love.graphics.setLineWidth(4)
         love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - 64, chars[i][1] - x + (chars[i][6] / 100) * 62, chars[i][2] - y - 64)
         love.graphics.setLineWidth(math.sin(dtTotal) * 5)
@@ -300,7 +309,7 @@ function love.draw()
   end
 
   if #lasers > 0 then
-    love.graphics.draw(laser, lasers[1][1] - x, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
+    love.graphics.draw(laser, lasers[1][1] - x + 32, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
   end
 
   if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true
