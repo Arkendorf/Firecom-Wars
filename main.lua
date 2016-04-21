@@ -63,6 +63,7 @@ function love.load()
   y = chars[selected][2] - round(h / 2)
   newEnemy(256, 256)
   newEnemy(256, 192)
+  enemyTurn = false
 end
 
 function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
@@ -212,23 +213,30 @@ function love.update(dt)
   end
 
   if chars[1][5] == 0 and chars[2][5] == 0 and chars[3][5] == 0 and chars[4][5] == 0 then
-    if alreadyMoved[enemyToMove] == 0 and #lasers == 0 then
+    enemyTurn = true
+    for i = 1, 4 do
+      if chars[i][1] ~= chars[i][3] or chars[i][2] ~= chars[i][4] then
+        enemyTurn = false
+      end
+    end
+    if alreadyMoved[enemyToMove] == 0 and #lasers == 0 and enemyTurn == true then
       spotPlayers(enemyToMove)
       getEnemyMoves(enemyToMove)
       chooseEnemyMove(enemyToMove)
       alreadyMoved[enemyToMove] = 1
     end
-    if enemyMove[enemyToMove][3] == 0 and #lasers == 0 then
+    if enemyMove[enemyToMove][3] == 0 and #lasers == 0 and enemyTurn == true then
       enemyAttack(enemyToMove)
       enemyToMove = enemyToMove + 1
     end
-    if enemyToMove == #enemies + 1 then
+    if enemyToMove == #enemies + 1 and enemyTurn == true then
       chars[1][5] = 10
       chars[2][5] = 10
       chars[3][5] = 10
       chars[4][5] = 10
       enemyToMove = 1
       alreadyMoved = {0, 0, 0, 0}
+      enemyTurn = false
     end
   end
 
@@ -297,15 +305,18 @@ function love.draw()
           love.graphics.draw(scout, chars[i][1] - x, chars[i][2] - y - 64)
         end
         love.graphics.setLineWidth(4)
+        love.graphics.setColor(255, 0, 0)
         if i == 2 then
           love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 - 4, chars[i][1] - x + (chars[i][6] / 200) * 62, chars[i][2] - y - images[i]:getHeight() / 2 - 4)
         else
           love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 - 4, chars[i][1] - x + (chars[i][6] / 100) * 62, chars[i][2] - y - images[i]:getHeight() / 2 - 4)
         end
+        love.graphics.setColor(0, 255, 255)
         if chars[i][5] > 0 then
           love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 + 4, chars[i][1] - x + (chars[i][5] / 10) * 62, chars[i][2] - y - images[i]:getHeight() / 2 + 4)
         end
         love.graphics.setLineWidth(math.sin(dtTotal) * 5)
+        love.graphics.setColor(255, 255, 255)
       end
     end
     for i = 1, #enemies do
@@ -313,8 +324,10 @@ function love.draw()
         if mapRevealed[round(enemies[i][2] / 64) + 1][round(enemies[i][1] / 64) + 1] == 1 then
           love.graphics.draw(stormtrooper, enemies[i][1] - x, enemies[i][2] - y - 64)
           love.graphics.setLineWidth(4)
+          love.graphics.setColor(255, 0, 0)
           love.graphics.line(enemies[i][1] - x + 2, enemies[i][2] - y - 64, enemies[i][1] - x + (enemies[i][6] / 100) * 62, enemies[i][2] - y - 64)
           love.graphics.setLineWidth(math.sin(dtTotal) * 5)
+          love.graphics.setColor(255, 255, 255)
         end
       end
     end
