@@ -10,7 +10,7 @@ function spotPlayers(i)
   distanceToPlayers = {}
   for char = 1, 4 do
     distanceToPlayers[char] = {char, math.sqrt((chars[char][3] - enemies[i][1]) * (chars[char][3] - enemies[i][1]) + (chars[char][4] - enemies[i][2]) * (chars[char][4] - enemies[i][2]))}
-    if distanceToPlayers[char][2] < 512 then
+    if distanceToPlayers[char][2] < 512 and dead[i] ~= 1 then
       playersSpotted[i][char] = 1
     end
   end
@@ -20,12 +20,6 @@ function getEnemyMoves(i)
   validMoves = {}
   if playersSpotted[i][1] == 0 and playersSpotted[i][2] == 0 and playersSpotted[i][3] == 0 and playersSpotted[i][4] == 0  then
     return
-  end
-  distanceToPlayers = {}
-  for char = 1, 4 do
-    if playersSpotted[i][char] == 1 then
-      table.insert(distanceToPlayers, {char, math.sqrt((chars[char][3] - enemies[i][1]) * (chars[char][3] - enemies[i][1]) + (chars[char][4] - enemies[i][2]) * (chars[char][4] - enemies[i][2]))})
-    end
   end
   table.sort(distanceToPlayers, function(a, b) return a[2] < b[2] end)
   for rowsDown = 0, #map - 1 do

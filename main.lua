@@ -48,10 +48,11 @@ function love.load()
   yV = 0
   dX = 0
   dY = 0
-  selected = 1 -- 1 is scout
+  selected = 1 -- 1 is scout, 2 is tank
   chars = {{0, 0, 0, 0, 10, 100}, {0, 64, 0, 64, 10, 100}, {64, 0, 64, 0, 10, 100}, {64, 64, 64, 64, 10, 100}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
   dead = {0, 0, 0, 0}
+  images = {scout, tank, scout, scout}
   enemies = {}
   enemyMove = {}
   orderE = {}
@@ -193,6 +194,9 @@ function love.update(dt)
   for i = 1, 4 do
     movePlayer(i)
     revealMap(i, 300)
+    if dead[i] == 1 then
+      chars[i][5] = 0
+    end
   end
 
   for i = 1, #enemies do
@@ -209,13 +213,13 @@ function love.update(dt)
   end
 
   if chars[1][5] == 0 and chars[2][5] == 0 and chars[3][5] == 0 and chars[4][5] == 0 then
-    if alreadyMoved[enemyToMove] == 0 then
+    if alreadyMoved[enemyToMove] == 0 and #lasers == 0 then
       spotPlayers(enemyToMove)
       getEnemyMoves(enemyToMove)
       chooseEnemyMove(enemyToMove)
       alreadyMoved[enemyToMove] = 1
     end
-    if enemies[enemyToMove][1] == enemies[enemyToMove][3] and enemies[enemyToMove][2] == enemies[enemyToMove][4] then
+    if enemies[enemyToMove][1] == enemies[enemyToMove][3] and enemies[enemyToMove][2] == enemies[enemyToMove][4] and #lasers == 0 then
       enemyAttack(enemyToMove)
       enemyToMove = enemyToMove + 1
     end
@@ -261,13 +265,13 @@ end
 function love.keypressed(key)
   if key == "tab" then
     selected = selected + 1
-    for i = 1, 4 do
+    while dead[selected] == 1 or selected > 4 do
       if dead[selected] == 1 then
         selected = selected + 1
       end
-    end
-    if selected == 5 then
-      selected = 1
+      if selected > 4 then
+        selected = selected - 4
+      end
     end
     x = chars[selected][1] - round(w / 2)
     y = chars[selected][2] - round(h / 2)
@@ -292,7 +296,10 @@ function love.draw()
           love.graphics.draw(scout, scout1, chars[i][1] - x, chars[i][2] - y - 64)
         end
         love.graphics.setLineWidth(4)
-        love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - 64, chars[i][1] - x + (chars[i][6] / 100) * 62, chars[i][2] - y - 64)
+        love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 - 4, chars[i][1] - x + (chars[i][6] / 100) * 62, chars[i][2] - y - images[i]:getHeight() / 2 - 4)
+        if chars[i][5] > 0 then
+          love.graphics.line(chars[i][1] - x + 2, chars[i][2] - y - images[i]:getHeight() / 2 + 4, chars[i][1] - x + (chars[i][5] / 10) * 62, chars[i][2] - y - images[i]:getHeight() / 2 + 4)
+        end
         love.graphics.setLineWidth(math.sin(dtTotal) * 5)
       end
     end
