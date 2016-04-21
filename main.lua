@@ -56,13 +56,15 @@ function love.load()
   enemyMove = {}
   orderE = {}
   enemyToMove = 1
-  alreadyMoved = {0, 0, 0, 0}
+  alreadyMoved = {}
   lasers = {}
   laserMove = {}
   x = chars[selected][1] - round(w / 2)
   y = chars[selected][2] - round(h / 2)
   newEnemy(256, 256)
   newEnemy(256, 192)
+  newEnemy(256, 128)
+  newEnemy(256, 64)
   enemyTurn = false
 end
 
@@ -235,7 +237,10 @@ function love.update(dt)
       chars[3][5] = 10
       chars[4][5] = 10
       enemyToMove = 1
-      alreadyMoved = {0, 0, 0, 0}
+      alreadyMoved = {}
+      for i = 1, #enemies do
+        table.insert(alreadyMoved, 0)
+      end
       enemyTurn = false
     end
   end
