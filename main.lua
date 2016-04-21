@@ -1,19 +1,7 @@
-function generateMap(size) -- temporary till we have a handcrafted one
-  map = {}
-  mapRevealed = {}
-  for rowsDown = 1, size do
-    map[rowsDown] = {}
-    mapRevealed[rowsDown] = {}
-    for tilesAcross = 1, size do
-      map[rowsDown][tilesAcross] = 1
-      mapRevealed[rowsDown][tilesAcross] = 0
-    end
-  end
-end
-
 function love.load()
 
   require("enemy")
+  require("map")
 
   love.window.setFullscreen(true)
 
@@ -44,15 +32,17 @@ function love.load()
   w = love.graphics.getWidth ()
   h = love.graphics.getHeight ()
 
-  generateMap(50)
-  map[3][3] = 2 -- TO TEST WALLS!
-  tileType = {0, 1}
+  loadMap(50)
+  tileType = {0, 1, 0, 1}
   xV = 0
   yV = 0
   dX = 0
   dY = 0
   selected = 1 -- 1 is scout, 2 is tank, 3 is sniper,
-  chars = {{0, 0, 0, 0, 10, 100}, {0, 64, 0, 64, 10, 200}, {64, 0, 64, 0, 10, 100}, {64, 64, 64, 64, 10, 100}}
+  chars = {{(#map[1] / 2) * 64, (#map / 2) * 64, (#map[1] / 2) * 64, (#map / 2) * 64, 10, 100},
+  {((#map[1] - 2) / 2) * 64, (#map / 2) * 64, ((#map[1] - 2) / 2) * 64, (#map / 2) * 64, 10, 100},
+  {(#map[1] / 2) * 64, ((#map + 1) / 2) * 64, (#map[1] / 2) * 64, ((#map - 2) / 2) * 64, 10, 100},
+  {((#map[1] - 2) / 2) * 64, ((#map - 2) / 2) * 64, ((#map[1] - 2) / 2) * 64, ((#map - 2) / 2) * 64, 10, 100}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
   dead = {0, 0, 0, 0}
   images = {scout, tank, sniper, scout}
@@ -67,10 +57,6 @@ function love.load()
   laserMove = {}
   x = chars[selected][1] - round(w / 2)
   y = chars[selected][2] - round(h / 2)
-  newEnemy(256, 256)
-  newEnemy(256, 192)
-  newEnemy(256, 128)
-  newEnemy(256, 64)
   enemyTurn = false
 end
 
