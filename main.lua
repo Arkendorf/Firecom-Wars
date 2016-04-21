@@ -40,7 +40,7 @@ function love.load()
   dY = 0
   selected = 1 -- 1 is scout, 2 is tank, 3 is sniper,
   chars = {{(#map[1] / 2) * 64, (#map / 2) * 64, (#map[1] / 2) * 64, (#map / 2) * 64, 10, 100},
-  {((#map[1] - 2) / 2) * 64, (#map / 2) * 64, ((#map[1] - 2) / 2) * 64, (#map / 2) * 64, 10, 100},
+  {((#map[1] - 2) / 2) * 64, (#map / 2) * 64, ((#map[1] - 2) / 2) * 64, (#map / 2) * 64, 10, 200},
   {(#map[1] / 2) * 64, ((#map + 1) / 2) * 64, (#map[1] / 2) * 64, ((#map - 2) / 2) * 64, 10, 100},
   {((#map[1] - 2) / 2) * 64, ((#map - 2) / 2) * 64, ((#map[1] - 2) / 2) * 64, ((#map - 2) / 2) * 64, 10, 100}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -102,17 +102,20 @@ function moveValid(x1, y1, x2, y2)
         lineDistance = math.sqrt((rowsDown * 64 - y1) * (rowsDown * 64 - y1) + (tilesAcross * 64 - x1) * (tilesAcross * 64 - x1))
         distanceToLine = math.abs((y2 - y1) * (tilesAcross * 64) - (x2 - x1) * (rowsDown * 64) + x2 * y1 - y2 * x1) / distance
         if distanceToLine < 32 and distance - lineDistance >= 0 then
+          tileOkay = false
           if x2 >= x1 and tilesAcross * 64 >= x1 then
           elseif x2 <= x1 and tilesAcross * 64 <= x1 then
           else
-            return true
+            tileOkay = true
           end
           if y2 >= y1 and rowsDown * 64 >= y1 then
           elseif y2 <= y1 and rowsDown * 64 <= y1 then
           else
-            return true
+            tileOkay = true
           end
-          return false
+          if tileOkay == false then
+            return false
+          end
         end
       end
     end
@@ -230,33 +233,40 @@ function love.update(dt)
   end
 
   if chars[1][5] == 0 and chars[2][5] == 0 and chars[3][5] == 0 and chars[4][5] == 0 then
-    enemyTurn = true
-    for i = 1, 4 do
-      if chars[i][1] ~= chars[i][3] or chars[i][2] ~= chars[i][4] then
+    if #enemies > 0 then
+      enemyTurn = true
+      for i = 1, 4 do
+        if chars[i][1] ~= chars[i][3] or chars[i][2] ~= chars[i][4] then
+          enemyTurn = false
+        end
+      end
+      if alreadyMoved[enemyToMove] == 0 and #lasers == 0 and enemyTurn == true then
+        spotPlayers(enemyToMove)
+        getEnemyMoves(enemyToMove)
+        chooseEnemyMove(enemyToMove)
+        alreadyMoved[enemyToMove] = 1
+      end
+      if enemyMove[enemyToMove][3] == 0 and #lasers == 0 and enemyTurn == true then
+        enemyAttack(enemyToMove)
+        enemyToMove = enemyToMove + 1
+      end
+      if enemyToMove == #enemies + 1 and enemyTurn == true then
+        chars[1][5] = 10
+        chars[2][5] = 10
+        chars[3][5] = 10
+        chars[4][5] = 10
+        enemyToMove = 1
+        alreadyMoved = {}
+        for i = 1, #enemies do
+          table.insert(alreadyMoved, 0)
+        end
         enemyTurn = false
       end
-    end
-    if alreadyMoved[enemyToMove] == 0 and #lasers == 0 and enemyTurn == true then
-      spotPlayers(enemyToMove)
-      getEnemyMoves(enemyToMove)
-      chooseEnemyMove(enemyToMove)
-      alreadyMoved[enemyToMove] = 1
-    end
-    if enemyMove[enemyToMove][3] == 0 and #lasers == 0 and enemyTurn == true then
-      enemyAttack(enemyToMove)
-      enemyToMove = enemyToMove + 1
-    end
-    if enemyToMove == #enemies + 1 and enemyTurn == true then
+    else
       chars[1][5] = 10
       chars[2][5] = 10
       chars[3][5] = 10
       chars[4][5] = 10
-      enemyToMove = 1
-      alreadyMoved = {}
-      for i = 1, #enemies do
-        table.insert(alreadyMoved, 0)
-      end
-      enemyTurn = false
     end
   end
 
