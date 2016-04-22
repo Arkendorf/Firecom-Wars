@@ -367,7 +367,7 @@ function love.mousepressed(mX, mY, button)
     elseif mode == 3 then
       attackDistance = math.sqrt((round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) * (round((mX - 32 + x) / 64) * 64 - round(chars[selected][1])) + (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])) * (round((mY - 32 + y) / 64) * 64 - round(chars[selected][2])))
       if selected == 2 then
-        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= specialCost[selected]
         and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 384 then
           for i = 1, #enemies do
             if enemies[i][3] == round((mX - 32 + x) / 64) * 64 and enemies[i][4] == round((mY - 32 + y) / 64) * 64 then
@@ -379,7 +379,7 @@ function love.mousepressed(mX, mY, button)
         end
         move = 1
       elseif selected == 3 then
-        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
+        if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= specialCost[selected]
         and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 1024 then
           for i = 1, #enemies do
             if enemies[i][3] == round((mX - 32 + x) / 64) * 64 and enemies[i][4] == round((mY - 32 + y) / 64) * 64 then
