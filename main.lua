@@ -32,6 +32,9 @@ function love.load()
   w = love.graphics.getWidth ()
   h = love.graphics.getHeight ()
 
+  fontBig = love.graphics.newFont("font.ttf", 96)
+  font = love.graphics.newFont("font.ttf", 18)
+
   loadMap(50)
   tileType = {0, 1, 0, 1}
   xV = 0
@@ -58,6 +61,10 @@ function love.load()
   x = chars[selected][1] - round(w / 2)
   y = chars[selected][2] - round(h / 2)
   enemyTurn = false
+
+  newEnemy (1152, 1216)
+  newEnemy (1088, 1216)
+
 end
 
 function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
@@ -205,6 +212,15 @@ function love.update(dt)
     end
   end
 
+  while dead[selected] == 1 or selected > 4 do
+    if dead[selected] == 1 then
+      selected = selected + 1
+    end
+    if selected > 4 then
+      selected = selected - 4
+    end
+  end
+
   for i = 1, #enemies do
     moveEnemy(i)
   end
@@ -216,16 +232,21 @@ function love.update(dt)
         enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 10
       elseif lasers[1][6] == 2 then
         chars[lasers[1][5]][6] = chars[lasers[1][5]][6] - 10
+        if chars[lasers[1][5]][6] < 1 then
+          dead[lasers[1][5]] = 1
+        end
       elseif lasers[1][6] == 3 then
         enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 25
       elseif lasers[1][6] == 4 then
         enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 100
       end
-      if enemies[lasers[1][5]][6] <= 0 then
-        table.remove(enemies, lasers[1][5])
-        table.remove(enemyMove, lasers[1][5])
-        table.remove(playersSpotted, lasers[1][5])
-        alreadyMoved[target] = nil
+      if lasers[1][6] == 1 or lasers[1][6] == 3 or lasers[1][6] == 4 then
+        if enemies[lasers[1][5]][6] <= 0 then
+          table.remove(enemies, lasers[1][5])
+          table.remove(enemyMove, lasers[1][5])
+          table.remove(playersSpotted, lasers[1][5])
+          alreadyMoved[target] = nil
+        end
       end
       table.remove(lasers, 1)
       table.remove(laserMove, 1)
@@ -236,7 +257,7 @@ function love.update(dt)
     if #enemies > 0 then
       enemyTurn = true
       for i = 1, 4 do
-        if chars[i][1] ~= chars[i][3] or chars[i][2] ~= chars[i][4] then
+        if charMove[i][3] ~= 0 then
           enemyTurn = false
         end
       end
@@ -257,10 +278,10 @@ function love.update(dt)
         chars[4][5] = 10
         enemyToMove = 1
         alreadyMoved = {}
+        enemyTurn = false
         for i = 1, #enemies do
           table.insert(alreadyMoved, 0)
         end
-        enemyTurn = false
       end
     else
       chars[1][5] = 10
@@ -270,16 +291,13 @@ function love.update(dt)
     end
   end
 
-  for i = 1, 4 do
-    if chars[i][6] < 1 then
-      dead[i] = 1
-    end
-  end
-
   love.graphics.setLineWidth(math.sin(dtTotal) * 5)
 
 
   if love.keyboard.isDown("escape") then
+    love.event.quit()
+  end
+  if dead[1] == 1 and dead[2] == 1 and dead[3] == 1 and dead[4] == 1 then
     love.event.quit()
   end
 end
@@ -362,6 +380,12 @@ function love.mousepressed(mX, mY, button)
 end
 
 function love.keypressed(key)
+  if key == "return" and enemyTurn == false then
+  chars[1][5] = 0
+  chars[2][5] = 0
+  chars[3][5] = 0
+  chars[4][5] = 0
+end
   if key == "tab" then
     mode = 1
     selected = selected + 1
@@ -403,10 +427,10 @@ function love.keypressed(key)
           for i = 1, 4 do
             closeness = math.sqrt((chars[i][3] - chars[selected][3]) * (chars[i][3] - chars[selected][3]) + (chars[i][4] - chars[selected][4]) * (chars[i][4] - chars[selected][4]))
             if closeness <= 96 then
-              chars[i][6] = chars[i][6] + 50
               if i == 2 then
                 if chars[i][6] < 200 then
                   healed = healed + 1
+                  chars[i][6] = chars[i][6] + 50
                 end
                 if chars[i][6] > 200 then
                   chars[i][6] = 200
@@ -414,6 +438,7 @@ function love.keypressed(key)
               else
                 if chars[i][6] < 100 then
                   healed = healed + 1
+                  chars[i][6] = chars[i][6] + 50
                 end
                 if chars[i][6] > 100 then
                   chars[i][6] = 100
@@ -539,4 +564,26 @@ function love.draw()
     end
     love.graphics.rectangle("fill", round((mX - 32 + x) / 64) * 64 - x, round((mY - 32 + y) / 64) * 64 - y, 64, 64)
   end
+  if enemyTurn == true then
+    love.graphics.setColor(255, 0, 0, 200)
+    love.graphics.setFont(fontBig)
+    love.graphics.print("Enemy Turn", w / 2 - 240, h / 2 - 18)
+  end
+  if selected == 1 then
+    love.graphics.setColor(255, 255, 255, 200)
+    love.graphics.setFont(font)
+    love.graphics.print("Main attack: Blaster\nRanged attack that does medium damage\n\nSpecial Attack: Scout\n(Type: instant)\nReveals tiles in a large radius around itself", 0, 0)
+  elseif selected == 2 then
+    love.graphics.setColor(255, 255, 255, 200)
+    love.graphics.setFont(font)
+    love.graphics.print("Main attack: Smash\nMelee attack that deals high damage\n\nSpecial Attack: Slingshot\n(Type: Targeted)\nShoot a rock that does high damage to foes", 0, 0)
+  elseif selected == 3 then
+    love.graphics.setColor(255, 255, 255, 200)
+    love.graphics.setFont(font)
+    love.graphics.print("Main attack: Blaster\nRanged attack that does medium damage\n\nSpecial Attack: Sniper Rifle\n(Type: Targeted)\ninstantly kills an enemy", 0, 0)
+  elseif selected == 4 then
+    love.graphics.setColor(255, 255, 255, 200)
+    love.graphics.setFont(font)
+    love.graphics.print("Main attack: Slash\nMelee attack that deals high damage\n\nSpecial Attack: Heal\n(Type: instant)\nHeal all allies within a one-tile radius", 0, 0)
+    end
 end

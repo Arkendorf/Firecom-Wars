@@ -10,9 +10,14 @@ end
 function spotPlayers(i)
   distanceToPlayers = {}
   for char = 1, 4 do
-    distanceToPlayers[char] = {char, math.sqrt((chars[char][3] - enemies[i][1]) * (chars[char][3] - enemies[i][1]) + (chars[char][4] - enemies[i][2]) * (chars[char][4] - enemies[i][2]))}
-    if distanceToPlayers[char][2] < 512 and dead[i] ~= 1 then
-      playersSpotted[i][char] = 1
+    if dead[char] ~= 1 then
+      distanceToPlayers[char] = {char, math.sqrt((chars[char][3] - enemies[i][1]) * (chars[char][3] - enemies[i][1]) + (chars[char][4] - enemies[i][2]) * (chars[char][4] - enemies[i][2]))}
+      if distanceToPlayers[char][2] < 512 then
+        playersSpotted[i][char] = 1
+      end
+    else
+      distanceToPlayers[char] = {char, 999999999}
+      playersSpotted[i][char] = 0
     end
   end
 end
