@@ -7,9 +7,9 @@ function love.load()
 
   tiles = {}
   tileset = love.graphics.newImage("tileset.png")
-  for rowsDown = 0, (tileset:getHeight() / 64) - 1 do
+  for rowsDown = 0, (tileset:getHeight() / 128) - 1 do
     for tilesAcross = 0, (tileset:getWidth() / 64) - 1 do
-      tiles[rowsDown * (tileset:getWidth() / 64) + tilesAcross + 1] = love.graphics.newQuad(tilesAcross * 64, rowsDown * 64, 64, 64, tileset:getDimensions())
+      tiles[rowsDown * (tileset:getWidth() / 64) + tilesAcross + 1] = love.graphics.newQuad(tilesAcross * 64, rowsDown * 128, 64, 128, tileset:getDimensions())
     end
   end
 
@@ -480,7 +480,7 @@ function love.draw()
     for tilesAcross = 1, #map[1] do
       if mapRevealed[rowsDown][tilesAcross] == 1 then
         if enemyTurn == true then love.graphics.setColor(255, 55, 55) end
-        love.graphics.draw(tileset, tiles[map[rowsDown][tilesAcross]], (tilesAcross - 1) * 64 - x, (rowsDown - 1) * 64 - y)
+        love.graphics.draw(tileset, tiles[map[rowsDown][tilesAcross]], (tilesAcross - 1) * 64 - x, (rowsDown - 1) * 64 - y - 64)
       end
     end
     for i = 1, 4 do
