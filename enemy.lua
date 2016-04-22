@@ -5,6 +5,7 @@ function newEnemy(x, y)
   table.insert(enemyMove, {0, 0, 0})
   table.insert(playersSpotted, {0, 0, 0, 0})
   table.insert(alreadyMoved, 0)
+  table.insert(alreadyAttacked, 0)
 end
 
 function spotPlayers(i)
@@ -78,9 +79,9 @@ function chooseEnemyMove(i)
 end
 
 function enemyAttack(i)
-  if moveValid(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4]) and enemies[i][5] > 0 then
+  if moveValid(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4]) then
     distanceToPlayer = math.sqrt((chars[distanceToPlayers[1][1]][3] - enemies[i][3]) * (chars[distanceToPlayers[1][1]][3] - enemies[i][3]) + (chars[distanceToPlayers[1][1]][4] - enemies[i][4]) * (chars[distanceToPlayers[1][1]][4] - enemies[i][4]))
-    if distanceToPlayer <= 512 then
+    if distanceToPlayer <= 256 then
       for attacks = enemies[i][5], 2, -2 do
         newLaser(enemies[i][3], enemies[i][4], chars[distanceToPlayers[1][1]][3], chars[distanceToPlayers[1][1]][4], distanceToPlayers[1][1], 2)
       end

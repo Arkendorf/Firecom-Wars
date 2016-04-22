@@ -37,7 +37,7 @@ function love.load()
   fontBig = love.graphics.newFont("font.ttf", 96)
   font = love.graphics.newFont("font.ttf", 18)
 
-  loadMap(50)
+  loadMap()
   tileType = {0, 1, 0, 1}
   xV = 0
   yV = 0
@@ -58,15 +58,13 @@ function love.load()
   orderE = {}
   enemyToMove = 1
   alreadyMoved = {}
+  alreadyAttacked = {}
   lasers = {}
   laserMove = {}
   x = chars[selected][1] - round(w / 2)
   y = chars[selected][2] - round(h / 2)
   enemyTurn = false
-
-  newEnemy (1152, 1216)
-  newEnemy (1088, 1216)
-
+  generateEnemies(20)
 end
 
 function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
@@ -228,30 +226,43 @@ function love.update(dt)
   end
 
   if #lasers > 0 then
-    moveLaser(1)
-    if laserMove[1][3] == 0 then
-      if lasers[1][6] == 1 then
-        enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 10
-      elseif lasers[1][6] == 2 then
-        chars[lasers[1][5]][6] = chars[lasers[1][5]][6] - 10
-        if chars[lasers[1][5]][6] < 1 then
-          dead[lasers[1][5]] = 1
-        end
-      elseif lasers[1][6] == 3 then
-        enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 25
-      elseif lasers[1][6] == 4 then
-        enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 100
+    if lasers[1][6] == 1 or lasers[1][6] == 3 or lasers[1][6] == 4 then
+      if lasers[1][3] ~= enemies[lasers[1][5]][3] or lasers[1][4] ~= enemies[lasers[1][5]][4] then
+        table.remove(lasers, 1)
+        table.remove(laserMove, 1)
       end
-      if lasers[1][6] == 1 or lasers[1][6] == 3 or lasers[1][6] == 4 then
-        if enemies[lasers[1][5]][6] <= 0 then
-          table.remove(enemies, lasers[1][5])
-          table.remove(enemyMove, lasers[1][5])
-          table.remove(playersSpotted, lasers[1][5])
-          alreadyMoved[target] = nil
-        end
+    else
+      if dead[lasers[1][5]] == 1 then
+        table.remove(lasers, 1)
+        table.remove(laserMove, 1)
       end
-      table.remove(lasers, 1)
-      table.remove(laserMove, 1)
+    end
+    if #lasers > 0 then
+      moveLaser(1)
+      if laserMove[1][3] == 0 then
+        if lasers[1][6] == 1 then
+          enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 10
+        elseif lasers[1][6] == 2 then
+          chars[lasers[1][5]][6] = chars[lasers[1][5]][6] - 10
+          if chars[lasers[1][5]][6] < 1 then
+            dead[lasers[1][5]] = 1
+          end
+        elseif lasers[1][6] == 3 then
+          enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 25
+        elseif lasers[1][6] == 4 then
+          enemies[lasers[1][5]][6] = enemies[lasers[1][5]][6] - 100
+        end
+        if lasers[1][6] == 1 or lasers[1][6] == 3 or lasers[1][6] == 4 then
+          if enemies[lasers[1][5]][6] <= 0 then
+            table.remove(enemies, lasers[1][5])
+            table.remove(enemyMove, lasers[1][5])
+            table.remove(playersSpotted, lasers[1][5])
+            alreadyMoved[target] = nil
+          end
+        end
+        table.remove(lasers, 1)
+        table.remove(laserMove, 1)
+      end
     end
   end
 
@@ -269,20 +280,23 @@ function love.update(dt)
         chooseEnemyMove(enemyToMove)
         alreadyMoved[enemyToMove] = 1
       end
-      if enemyMove[enemyToMove][3] == 0 and #lasers == 0 and enemyTurn == true then
+      if enemyToMove <= #enemies and enemyMove[enemyToMove][3] == 0 and alreadyAttacked[enemyToMove] == 0 and #lasers == 0 and enemyTurn == true then
         enemyAttack(enemyToMove)
+        alreadyAttacked[enemyToMove] = 1
         enemyToMove = enemyToMove + 1
       end
-      if enemyToMove == #enemies + 1 and enemyTurn == true then
+      if enemyToMove == #enemies + 1 and enemyTurn == true and #lasers == 0 then
         chars[1][5] = 10
         chars[2][5] = 10
         chars[3][5] = 10
         chars[4][5] = 10
         enemyToMove = 1
         alreadyMoved = {}
+        alreadyAttacked = {}
         enemyTurn = false
         for i = 1, #enemies do
           table.insert(alreadyMoved, 0)
+          table.insert(alreadyAttacked, 0)
         end
       end
     else
@@ -465,10 +479,12 @@ function love.draw()
   for rowsDown = 1, #map do
     for tilesAcross = 1, #map[1] do
       if mapRevealed[rowsDown][tilesAcross] == 1 then
+        if enemyTurn == true then love.graphics.setColor(255, 55, 55) end
         love.graphics.draw(tileset, tiles[map[rowsDown][tilesAcross]], (tilesAcross - 1) * 64 - x, (rowsDown - 1) * 64 - y)
       end
     end
     for i = 1, 4 do
+      if enemyTurn == true then love.graphics.setColor(255, 55, 55) end
       if chars[i][2] > (rowsDown * 64) - 128 and chars[i][2] <= (rowsDown * 64) - 64 and dead[i] ~= 1 then
         if i == 1 then
           love.graphics.draw(scout, chars[i][1] - x, chars[i][2] - y - 64)
@@ -495,6 +511,7 @@ function love.draw()
       end
     end
     for i = 1, #enemies do
+      if enemyTurn == true then love.graphics.setColor(255, 55, 55) end
       if enemies[i][2] > (rowsDown * 64) - 128 and enemies[i][2] <= (rowsDown * 64) - 64 then
         if mapRevealed[round(enemies[i][2] / 64) + 1][round(enemies[i][1] / 64) + 1] == 1 then
           love.graphics.draw(stormtrooper, enemies[i][1] - x, enemies[i][2] - y - 64)
@@ -509,6 +526,7 @@ function love.draw()
   end
 
   if #lasers > 0 then
+    if enemyTurn == true then love.graphics.setColor(255, 55, 55) end
     if lasers[1][6] == 1 or lasers[1][6] == 2 then
       love.graphics.draw(laser, lasers[1][1] - x + 32, lasers[1][2] - y - 32, math.atan2(lasers[1][4] - lasers[1][2], lasers[1][3] - lasers[1][1]))
     elseif lasers[1][6] == 3 then
@@ -569,7 +587,7 @@ function love.draw()
   if enemyTurn == true then
     love.graphics.setColor(255, 0, 0, 200)
     love.graphics.setFont(fontBig)
-    love.graphics.print("Enemy Turn", w / 2 - 240, h / 2 - 18)
+    love.graphics.print("Enemy Activity", w / 2 - 336, h / 2 - 48)
   end
   if selected == 1 then
     love.graphics.setColor(255, 255, 255, 200)

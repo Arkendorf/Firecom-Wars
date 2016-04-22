@@ -39,3 +39,16 @@ function loadMap()
     end
   end
 end
+
+function generateEnemies(quantity)
+  for rowsDown = 1, #map do
+    for tilesAcross = 1, #map[1] do
+      if tileType[map[rowsDown][tilesAcross]] == 0 then
+        chance = math.random(quantity)
+        if chance == 1 then
+          newEnemy((tilesAcross - 1) * 64, (rowsDown - 1) * 64)
+        end
+      end
+    end
+  end
+end
