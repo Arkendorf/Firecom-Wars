@@ -19,6 +19,8 @@ function love.load()
 
   sniper = love.graphics.newImage("sniper.png")
 
+  healer = love.graphics.newImage("healer.png")
+
   stormtrooper = love.graphics.newImage("stormtrooper.png")
 
   laser = love.graphics.newImage("laser.png")
@@ -48,7 +50,7 @@ function love.load()
   {((#map[1] - 2) / 2) * 64, ((#map - 2) / 2) * 64, ((#map[1] - 2) / 2) * 64, ((#map - 2) / 2) * 64, 10, 100}}
   charMove = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
   dead = {0, 0, 0, 0}
-  images = {scout, tank, sniper, scout}
+  images = {scout, tank, sniper, healer}
   mode = 1
   specialCost = {5, 3, 10, 8}
   enemies = {}
@@ -332,7 +334,7 @@ function love.mousepressed(mX, mY, button)
         end
       elseif selected == 2 or selected == 4 then
         if moveValid(round(chars[selected][1]), round(chars[selected][2]), round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) == true and chars[selected][5] >= 2
-        and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 64 then
+        and enemyOnTile(round((mX - 32 + x) / 64) * 64, round((mY - 32 + y) / 64) * 64) and attackDistance <= 96 then
           for i = 1, #enemies do
             if enemies[i][3] == round((mX - 32 + x) / 64) * 64 and enemies[i][4] == round((mY - 32 + y) / 64) * 64 then
               target = i
@@ -475,7 +477,7 @@ function love.draw()
         elseif i == 3 then
           love.graphics.draw(sniper, chars[i][1] - x, chars[i][2] - y - 64)
         else
-          love.graphics.draw(scout, chars[i][1] - x, chars[i][2] - y - 64)
+          love.graphics.draw(healer, chars[i][1] - x, chars[i][2] - y - 64)
         end
         love.graphics.setLineWidth(4)
         love.graphics.setColor(255, 0, 0)
