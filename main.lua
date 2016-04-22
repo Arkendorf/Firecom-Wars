@@ -587,7 +587,7 @@ function love.draw()
   if enemyTurn == true then
     love.graphics.setColor(255, 0, 0, 200)
     love.graphics.setFont(fontBig)
-    love.graphics.print("Enemy Activity", w / 2 - 336, h / 2 - 48)
+    love.graphics.print("Enemy Activity", w / 2 - 400, h / 2 - 48)
   end
   if selected == 1 then
     love.graphics.setColor(255, 255, 255, 200)
